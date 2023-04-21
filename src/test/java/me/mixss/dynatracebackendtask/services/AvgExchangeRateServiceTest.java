@@ -3,8 +3,9 @@ package me.mixss.dynatracebackendtask.services;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import me.mixss.dynatracebackendtask.exceptions.BadDateFormatException;
+import me.mixss.dynatracebackendtask.exceptions.ApiResponseBadFormatException;
 import me.mixss.dynatracebackendtask.restclients.AvgExchangeRateClient;
+import me.mixss.dynatracebackendtask.utils.DateSplitter;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -17,20 +18,18 @@ import static org.mockito.Mockito.when;
 class AvgExchangeRateServiceTest {
 
     AvgExchangeRateService service;
-    JsonNode apiResult;
-    float correctValue;
     String currencyCode, date, year, month, day;
 
     @Mock
     AvgExchangeRateClient apiClient;
+    @Mock
+    DateSplitter dateSplitter;
 
     @BeforeEach
-    void setUp() throws JsonProcessingException {
+    void setUp()  {
         MockitoAnnotations.openMocks(this);
-        service = new AvgExchangeRateService(apiClient);
-        ObjectMapper mapper = new ObjectMapper();
-        correctValue = 4.1744f;
-        apiResult = mapper.readTree("{\"table\":\"A\",\"currency\":\"dolar amerykański\",\"code\":\"USD\",\"rates\":[{\"no\":\"070/A/NBP/2020\",\"effectiveDate\":\"2020-04-09\",\"mid\":4.1744}]}");
+        service = new AvgExchangeRateService(apiClient, dateSplitter);
+
         date = "2020-04-09";
         currencyCode = "usd";
         year = "2020";
@@ -39,19 +38,50 @@ class AvgExchangeRateServiceTest {
     }
 
     @Test
-    void getAvgExchangeRateAtDate_CorrectFloat_apiClientProperResponse() {
+    void getAvgExchangeRateAtDate_CorrectFloat_apiClientProperResponse() throws JsonProcessingException {
 
-        when(apiClient.getAvgExchangeRateAtDate(currencyCode, year, month, day)).thenReturn(apiResult);
+        ObjectMapper mapper = new ObjectMapper();
+        float correctValue = 4.1744f;
+        JsonNode apiGoodResult = mapper.readTree("{\"table\":\"A\",\"currency\":\"dolar amerykański\",\"code\":\"USD\",\"rates\":[{\"no\":\"070/A/NBP/2020\",\"effectiveDate\":\"2020-04-09\",\"mid\":4.1744}]}");
 
-        float serviceResult = service.getAvgExchangeRateAtDate(currencyCode, "2020-04-09");
+        when(dateSplitter.getYear(date)).thenReturn(year);
+        when(dateSplitter.getMonth(date)).thenReturn(month);
+        when(dateSplitter.getDay(date)).thenReturn(day);
+        when(apiClient.getAvgExchangeRateAtDate(currencyCode, year, month, day)).thenReturn(apiGoodResult);
+
+        float serviceResult = service.getAvgExchangeRateAtDate(currencyCode, date);
 
         assertEquals(correctValue, serviceResult);
     }
 
     @Test
-    void getAvgExchangeRateAtDate_throwsBadDateFormatException_WrongDateFormat() {
-        Assertions.assertThrows(BadDateFormatException.class, () -> {
-            service.getAvgExchangeRateAtDate(currencyCode, "2020-04-9");
-        }, "Should throw BadDateFormatException when 2020-04-9");
+    void getAvgExchangeRateAtDate_throwsApiResponseBadFormatException_ratesNotPresent() throws JsonProcessingException {
+        ObjectMapper mapper = new ObjectMapper();
+        JsonNode ratesNotPresentApiResult = mapper.readTree("{}");
+
+        when(dateSplitter.getYear(date)).thenReturn(year);
+        when(dateSplitter.getMonth(date)).thenReturn(month);
+        when(dateSplitter.getDay(date)).thenReturn(day);
+        when(apiClient.getAvgExchangeRateAtDate(currencyCode, year, month, day)).thenReturn(ratesNotPresentApiResult);
+
+        Assertions.assertThrows(ApiResponseBadFormatException.class, () -> {
+            service.getAvgExchangeRateAtDate(currencyCode, date);
+        }, "Should throw ApiResponseBadFormatException");
     }
+
+    @Test
+    void getAvgExchangeRateAtDate_throwsApiResponseBadFormatException_midNotPresent() throws JsonProcessingException {
+        ObjectMapper mapper = new ObjectMapper();
+        JsonNode ratesNotPresentApiResult = mapper.readTree("{\"table\":\"A\",\"currency\":\"dolar amerykański\",\"code\":\"USD\",\"rates\":[{\"no\":\"070/A/NBP/2020\",\"effectiveDate\":\"2020-04-09\",\"avg\":4.1744}]}");
+
+        when(dateSplitter.getYear(date)).thenReturn(year);
+        when(dateSplitter.getMonth(date)).thenReturn(month);
+        when(dateSplitter.getDay(date)).thenReturn(day);
+        when(apiClient.getAvgExchangeRateAtDate(currencyCode, year, month, day)).thenReturn(ratesNotPresentApiResult);
+
+        Assertions.assertThrows(ApiResponseBadFormatException.class, () -> {
+            service.getAvgExchangeRateAtDate(currencyCode, date);
+        }, "Should throw ApiResponseBadFormatException");
+    }
+
 }
