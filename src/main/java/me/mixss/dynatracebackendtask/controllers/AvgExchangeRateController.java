@@ -1,7 +1,5 @@
 package me.mixss.dynatracebackendtask.controllers;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import me.mixss.dynatracebackendtask.exceptions.ApiBadResponseException;
 import me.mixss.dynatracebackendtask.services.AvgExchangeRateService;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
