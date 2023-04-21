@@ -3,12 +3,14 @@ package me.mixss.dynatracebackendtask.services;
 import com.fasterxml.jackson.databind.JsonNode;
 import me.mixss.dynatracebackendtask.domain.MinMaxAverageResult;
 import me.mixss.dynatracebackendtask.exceptions.ApiResponseBadFormatException;
+import me.mixss.dynatracebackendtask.exceptions.TooBigNumberOfQuotations;
 import me.mixss.dynatracebackendtask.restclients.LastQuotationsClient;
 import org.springframework.stereotype.Service;
 
 @Service
 public class MinMaxAverageService {
 
+    private final int maxNumberOfQuotations = 255;
     private LastQuotationsClient lastQuotationsClient;
 
     public MinMaxAverageService(LastQuotationsClient lastQuotationsClient) {
@@ -16,6 +18,11 @@ public class MinMaxAverageService {
     }
 
     public MinMaxAverageResult getLastMinMaxAverage(String currencyCode, int numberOfLastQuotations){
+
+        if(numberOfLastQuotations > maxNumberOfQuotations){
+            throw new TooBigNumberOfQuotations();
+        }
+
         JsonNode result = lastQuotationsClient.getLastQuotations(currencyCode, numberOfLastQuotations);
         JsonNode rates = result.path("rates");
         if(rates.isEmpty())
