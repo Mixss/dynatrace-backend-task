@@ -1,49 +1,53 @@
 package me.mixss.dynatracebackendtask.services;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import org.assertj.core.api.Assertions;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import me.mixss.dynatracebackendtask.exceptions.BadDateFormatException;
+import me.mixss.dynatracebackendtask.restclients.AvgExchangeRateClient;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestTemplate;
 
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 
 @Service
 public class AvgExchangeRateService {
 
-    public Float getAvgExchangeRateAtDate(String currencyCode, String dateString) throws JsonProcessingException {
+    private final AvgExchangeRateClient avgExchangeRateClient;
 
-        LocalDate date = LocalDate.parse(dateString);
-        DateTimeFormatter monthFormatter = DateTimeFormatter.ofPattern("MM");
-        DateTimeFormatter dayFormatter = DateTimeFormatter.ofPattern("dd");
+    public AvgExchangeRateService(AvgExchangeRateClient avgExchangeRateClient) {
+        this.avgExchangeRateClient = avgExchangeRateClient;
+    }
 
-        String month = date.format(monthFormatter);
-        String day = date.format(dayFormatter);
+    public Float getAvgExchangeRateAtDate(String currencyCode, String dateString) {
 
-        String apiUrl = String.format("http://api.nbp.pl/api/exchangerates/rates/a/%s/%d-%s-%s?format=json",
-                currencyCode, date.getYear(), month, day);
+        try {
+            LocalDate date = LocalDate.parse(dateString);
+            DateTimeFormatter monthFormatter = DateTimeFormatter.ofPattern("MM");
+            DateTimeFormatter dayFormatter = DateTimeFormatter.ofPattern("dd");
 
-        RestTemplate restTemplate = new RestTemplate();
+            String month = date.format(monthFormatter);
+            String day = date.format(dayFormatter);
 
-        ResponseEntity<String> response = restTemplate.getForEntity(apiUrl, String.class);
-        Assertions.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+            // npb api call
+            JsonNode result = avgExchangeRateClient.getAvgExchangeRateAtDate(currencyCode, String.valueOf(date.getYear()), month, day);
+            JsonNode rates = result.path("rates");
 
-        ObjectMapper mapper = new ObjectMapper();
-        JsonNode root = mapper.readTree(response.getBody());
-        JsonNode rates = root.path("rates");
+            float value = 0f;
+            int len = 0;
 
-        float value = 0f;
-        int len = 0;
-        for(JsonNode rate : rates){
-            value += Float.parseFloat(String.valueOf(rate.path("mid")));
-            len++;
+            // rates is always an array
+            for(JsonNode rate : rates){
+                value += Float.parseFloat(String.valueOf(rate.path("mid")));
+                len++;
+            }
+            value /= len;
+            return value;
+
         }
-        value /= len;
-        return value;
+        catch (DateTimeParseException e){
+            throw new BadDateFormatException();
+        }
+
     }
 }

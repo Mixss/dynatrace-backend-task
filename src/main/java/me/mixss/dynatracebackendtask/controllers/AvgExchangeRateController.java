@@ -1,13 +1,13 @@
 package me.mixss.dynatracebackendtask.controllers;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import me.mixss.dynatracebackendtask.exceptions.ApiBadResponseException;
 import me.mixss.dynatracebackendtask.services.AvgExchangeRateService;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.List;
 
 @RestController
 @RequestMapping("/api")
@@ -20,8 +20,8 @@ public class AvgExchangeRateController {
     }
 
     @GetMapping ("/avg/{currencyCode}/{date}/")
-    public List<String> getAvgExchangeRateAtDay(@PathVariable String currencyCode, @PathVariable String date ) throws JsonProcessingException {
+    public String getAvgExchangeRateAtDay(@PathVariable String currencyCode, @PathVariable String date ) {
         Float averageRate = avgExchangeRateService.getAvgExchangeRateAtDate(currencyCode, date);
-        return List.of(String.valueOf(averageRate));
+        return String.valueOf(averageRate);
     }
 }
