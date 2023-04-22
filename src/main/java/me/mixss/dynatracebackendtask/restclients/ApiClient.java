@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import me.mixss.dynatracebackendtask.exceptions.ApiBadResponseException;
 import me.mixss.dynatracebackendtask.exceptions.ApiNotFoundException;
+import me.mixss.dynatracebackendtask.exceptions.ApiResponseBadFormatException;
 import org.springframework.http.*;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
@@ -31,7 +32,8 @@ public abstract class ApiClient {
             }
             throw new ApiBadResponseException(e.getMessage());
         } catch (JsonProcessingException e) {
-            throw new ApiBadResponseException(e.getMessage());
+            e.printStackTrace();
+            throw new ApiResponseBadFormatException();
         }
     }
 }
