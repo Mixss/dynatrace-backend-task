@@ -1,44 +1,28 @@
 package me.mixss.dynatracebackendtask.utils;
 
-import me.mixss.dynatracebackendtask.exceptions.BadDateFormatException;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.time.format.DateTimeParseException;
 
 @Component
 public class DateSplitter {
-    // this class splits date in format yyyy-mm-dd
+    // this class splits LocalDate to its elements in string format of
+    // yyyy for years
+    // mm for months
+    // dd for days
 
-    public String getYear(String date) {
-        try{
-            return String.valueOf(LocalDate.parse(date).getYear());
-        }
-        catch (DateTimeParseException e){
-            throw new BadDateFormatException();
-        }
+    public String getYear(LocalDate date) {
+        return String.valueOf(date.getYear());
     }
 
-    public String getMonth(String date){
-        try{
-            LocalDate localDate = LocalDate.parse(date);
-            DateTimeFormatter monthFormatter = DateTimeFormatter.ofPattern("MM");
-            return monthFormatter.format(localDate);
-        }
-        catch (DateTimeParseException e) {
-            throw new BadDateFormatException();
-        }
+    public String getMonth(LocalDate date){
+        DateTimeFormatter monthFormatter = DateTimeFormatter.ofPattern("MM");
+        return monthFormatter.format(date);
     }
 
-    public String getDay(String date){
-        try{
-            LocalDate localDate = LocalDate.parse(date);
-            DateTimeFormatter dayFormatter = DateTimeFormatter.ofPattern("dd");
-            return dayFormatter.format(localDate);
-        }
-        catch (DateTimeParseException e) {
-            throw new BadDateFormatException();
-        }
+    public String getDay(LocalDate date){
+        DateTimeFormatter dayFormatter = DateTimeFormatter.ofPattern("dd");
+        return dayFormatter.format(date);
     }
 }

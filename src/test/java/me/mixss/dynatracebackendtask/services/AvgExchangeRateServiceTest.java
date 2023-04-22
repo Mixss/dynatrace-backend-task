@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import me.mixss.dynatracebackendtask.exceptions.ApiResponseBadFormatException;
+import me.mixss.dynatracebackendtask.exceptions.FutureDateException;
 import me.mixss.dynatracebackendtask.restclients.AvgExchangeRateClient;
 import me.mixss.dynatracebackendtask.utils.DateSplitter;
 import org.junit.jupiter.api.Assertions;
@@ -12,13 +13,16 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
+import java.time.LocalDate;
+
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.when;
 
 class AvgExchangeRateServiceTest {
 
     AvgExchangeRateService service;
-    String currencyCode, date, year, month, day;
+    String currencyCode, dateString, year, month, day;
+    LocalDate date;
 
     @Mock
     AvgExchangeRateClient apiClient;
@@ -29,8 +33,8 @@ class AvgExchangeRateServiceTest {
     void setUp()  {
         MockitoAnnotations.openMocks(this);
         service = new AvgExchangeRateService(apiClient, dateSplitter);
-
-        date = "2020-04-09";
+        dateString = "2020-04-09";
+        date = LocalDate.parse(dateString);
         currencyCode = "usd";
         year = "2020";
         month = "04";
@@ -49,7 +53,7 @@ class AvgExchangeRateServiceTest {
         when(dateSplitter.getDay(date)).thenReturn(day);
         when(apiClient.getAvgExchangeRateAtDate(currencyCode, year, month, day)).thenReturn(apiGoodResult);
 
-        float serviceResult = service.getAvgExchangeRateAtDate(currencyCode, date);
+        float serviceResult = service.getAvgExchangeRateAtDate(currencyCode, dateString);
 
         assertEquals(correctValue, serviceResult);
     }
@@ -65,7 +69,7 @@ class AvgExchangeRateServiceTest {
         when(apiClient.getAvgExchangeRateAtDate(currencyCode, year, month, day)).thenReturn(ratesNotPresentApiResult);
 
         Assertions.assertThrows(ApiResponseBadFormatException.class, () -> {
-            service.getAvgExchangeRateAtDate(currencyCode, date);
+            service.getAvgExchangeRateAtDate(currencyCode, dateString);
         }, "Should throw ApiResponseBadFormatException");
     }
 
@@ -80,8 +84,14 @@ class AvgExchangeRateServiceTest {
         when(apiClient.getAvgExchangeRateAtDate(currencyCode, year, month, day)).thenReturn(ratesNotPresentApiResult);
 
         Assertions.assertThrows(ApiResponseBadFormatException.class, () -> {
-            service.getAvgExchangeRateAtDate(currencyCode, date);
+            service.getAvgExchangeRateAtDate(currencyCode, dateString);
         }, "Should throw ApiResponseBadFormatException");
     }
 
+    @Test
+    void getAvgExchangeRateAtDate_throwsFutureDateException_futureDateInDateString(){
+        Assertions.assertThrows(FutureDateException.class, () -> {
+            service.getAvgExchangeRateAtDate(currencyCode, "3000-05-05");
+        }, "Should throw FutureDateException");
+    }
 }

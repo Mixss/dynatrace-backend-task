@@ -2,9 +2,14 @@ package me.mixss.dynatracebackendtask.services;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import me.mixss.dynatracebackendtask.exceptions.ApiResponseBadFormatException;
+import me.mixss.dynatracebackendtask.exceptions.BadDateFormatException;
 import me.mixss.dynatracebackendtask.restclients.AvgExchangeRateClient;
 import me.mixss.dynatracebackendtask.utils.DateSplitter;
+import org.springframework.cglib.core.Local;
 import org.springframework.stereotype.Service;
+
+import java.time.LocalDate;
+import java.time.format.DateTimeParseException;
 
 
 @Service
@@ -20,25 +25,32 @@ public class AvgExchangeRateService {
 
     public Float getAvgExchangeRateAtDate(String currencyCode, String dateString) {
 
-        // npb api call
-        JsonNode result = avgExchangeRateClient.getAvgExchangeRateAtDate(currencyCode,
-                dateSplitter.getYear(dateString), dateSplitter.getMonth(dateString), dateSplitter.getDay(dateString));
-        JsonNode rates = result.path("rates");
-        if(rates.isEmpty())
-            throw new ApiResponseBadFormatException();
+        try{
+            LocalDate date = LocalDate.parse(dateString);
 
-        float value = 0f;
-        int len = 0;
-
-        // rates is always an array, in case of many elements present the average is computed
-        for(JsonNode rate : rates){
-            JsonNode mid = rate.path("mid");
-            if(!mid.isDouble())
+            // npb api call
+            JsonNode result = avgExchangeRateClient.getAvgExchangeRateAtDate(currencyCode,
+                    dateSplitter.getYear(date), dateSplitter.getMonth(date), dateSplitter.getDay(date));
+            JsonNode rates = result.path("rates");
+            if(rates.isEmpty())
                 throw new ApiResponseBadFormatException();
-            value += Float.parseFloat(String.valueOf(mid));
-            len++;
+
+            float value = 0f;
+            int len = 0;
+
+            // rates is always an array, in case of many elements present the average is computed
+            for(JsonNode rate : rates){
+                JsonNode mid = rate.path("mid");
+                if(!mid.isDouble())
+                    throw new ApiResponseBadFormatException();
+                value += Float.parseFloat(String.valueOf(mid));
+                len++;
+            }
+            value /= len;
+            return value;
         }
-        value /= len;
-        return value;
+        catch(DateTimeParseException e){
+            throw new BadDateFormatException();
+        }
     }
 }
