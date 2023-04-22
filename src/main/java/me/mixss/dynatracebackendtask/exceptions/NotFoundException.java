@@ -6,6 +6,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 @ResponseStatus(HttpStatus.NOT_FOUND)
 public class NotFoundException extends RuntimeException{
 
+    // this exception is thrown when none of controllers found a match
     public NotFoundException() {
         super("Resource not found");
     }
