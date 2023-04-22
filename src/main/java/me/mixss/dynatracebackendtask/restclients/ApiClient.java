@@ -13,6 +13,8 @@ import org.springframework.web.client.RestTemplate;
 import java.util.Collections;
 
 public abstract class ApiClient {
+    // this abstract class implements call to an external api
+
     public JsonNode makeCall(String url) {
         RestTemplate restTemplate = new RestTemplate();
         HttpHeaders headers = new HttpHeaders();
