@@ -17,7 +17,7 @@ public class MaxDiffBuyAndSellRateController {
     }
 
     @GetMapping("/maxdiff/{currencyCode}/{numberOfQuotations}")
-    public Float getMaxDiffBuyAndSellRate(@PathVariable String currencyCode, @PathVariable int numberOfQuotations){
+    public Double getMaxDiffBuyAndSellRate(@PathVariable String currencyCode, @PathVariable int numberOfQuotations){
         return maxDiffBuyAndSellRateService.getMaxDiffBuyAndSellRate(currencyCode, numberOfQuotations);
     }
 }

@@ -1,7 +1,13 @@
 package me.mixss.dynatracebackendtask.services;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import me.mixss.dynatracebackendtask.exceptions.ApiResponseBadFormatException;
+import me.mixss.dynatracebackendtask.exceptions.TooBigNumberOfQuotations;
 import me.mixss.dynatracebackendtask.restclients.LastQuotationsBuyAndSellRatesClient;
 import org.springframework.stereotype.Service;
+
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 
 @Service
 public class MaxDiffBuyAndSellRateService {
@@ -13,7 +19,35 @@ public class MaxDiffBuyAndSellRateService {
         this.lastQuotationsBuyAndSellRatesClient = lastQuotationsBuyAndSellRatesClient;
     }
 
-    public Float getMaxDiffBuyAndSellRate(String currencyCode, int numberOfLastQuotations){
-        return 0f;
+    public Double getMaxDiffBuyAndSellRate(String currencyCode, int numberOfLastQuotations){
+        if(numberOfLastQuotations > maxNumberOfQuotations){
+            throw new TooBigNumberOfQuotations();
+        }
+
+        JsonNode result = lastQuotationsBuyAndSellRatesClient.getLastQuotationsBuyAndSellRates(currencyCode, numberOfLastQuotations);
+        JsonNode rates = result.path("rates");
+        if(rates.isEmpty())
+            throw new ApiResponseBadFormatException();
+
+        double maxDiff = 0;
+
+        for(JsonNode rate : rates){
+            JsonNode bid = rate.path("bid");
+            JsonNode ask = rate.path("ask");
+            if(!bid.isDouble() || !ask.isDouble())
+                throw new ApiResponseBadFormatException();
+            double bidVal = Double.parseDouble(String.valueOf(bid));
+            double askVal = Double.parseDouble(String.valueOf(ask));
+            double diff = Math.abs(askVal - bidVal);
+            // rounding the number to four decimal spaces
+            BigDecimal bd = new BigDecimal(Double.toString(diff));
+            bd = bd.setScale(4, RoundingMode.HALF_UP);
+            diff = bd.doubleValue();
+
+            if (diff > maxDiff)
+                maxDiff = diff;
+        }
+
+        return maxDiff;
     }
 }
