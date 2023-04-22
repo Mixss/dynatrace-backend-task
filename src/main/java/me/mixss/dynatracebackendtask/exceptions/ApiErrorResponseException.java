@@ -4,9 +4,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
 @ResponseStatus(value = HttpStatus.BAD_REQUEST)
-public class ApiBadResponseException extends RuntimeException{
+public class ApiErrorResponseException extends RuntimeException{
 
-    public ApiBadResponseException(String message) {
+    public ApiErrorResponseException(String message) {
         super(message);
     }
 }

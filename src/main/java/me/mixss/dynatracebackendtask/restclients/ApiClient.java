@@ -1,10 +1,9 @@
 package me.mixss.dynatracebackendtask.restclients;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import me.mixss.dynatracebackendtask.exceptions.ApiBadResponseException;
+import me.mixss.dynatracebackendtask.exceptions.ApiErrorResponseException;
 import me.mixss.dynatracebackendtask.exceptions.ApiNotFoundException;
 import me.mixss.dynatracebackendtask.exceptions.ApiResponseBadFormatException;
 import org.springframework.http.*;
@@ -30,7 +29,7 @@ public abstract class ApiClient {
             if(status == HttpStatus.NOT_FOUND){
                 throw new ApiNotFoundException();
             }
-            throw new ApiBadResponseException(e.getMessage());
+            throw new ApiErrorResponseException(e.getMessage());
         } catch (JsonProcessingException e) {
             e.printStackTrace();
             throw new ApiResponseBadFormatException();
