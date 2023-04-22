@@ -18,8 +18,7 @@ public class AvgExchangeRateController {
     }
 
     @GetMapping ("/avg/{currencyCode}/{date}")
-    public String getAvgExchangeRateAtDay(@PathVariable String currencyCode, @PathVariable String date ) {
-        Float averageRate = avgExchangeRateService.getAvgExchangeRateAtDate(currencyCode, date);
-        return String.valueOf(averageRate);
+    public Float getAvgExchangeRateAtDay(@PathVariable String currencyCode, @PathVariable String date ) {
+        return avgExchangeRateService.getAvgExchangeRateAtDate(currencyCode, date);
     }
 }
