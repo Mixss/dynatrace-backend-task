@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api")
 public class MinMaxAverageController {
 
-    private MinMaxAverageService minMaxAverageService;
+    private final MinMaxAverageService minMaxAverageService;
 
     public MinMaxAverageController(MinMaxAverageService minMaxAverageService) {
         this.minMaxAverageService = minMaxAverageService;
