@@ -3,6 +3,7 @@ package me.mixss.dynatracebackendtask.services;
 import com.fasterxml.jackson.databind.JsonNode;
 import me.mixss.dynatracebackendtask.exceptions.ApiResponseBadFormatException;
 import me.mixss.dynatracebackendtask.exceptions.BadDateFormatException;
+import me.mixss.dynatracebackendtask.exceptions.FutureDateException;
 import me.mixss.dynatracebackendtask.restclients.AvgExchangeRateClient;
 import me.mixss.dynatracebackendtask.utils.DateSplitter;
 import org.springframework.cglib.core.Local;
@@ -27,6 +28,9 @@ public class AvgExchangeRateService {
 
         try{
             LocalDate date = LocalDate.parse(dateString);
+            if(date.isAfter(LocalDate.now())){
+                throw new FutureDateException();
+            }
 
             // npb api call
             JsonNode result = avgExchangeRateClient.getAvgExchangeRateAtDate(currencyCode,
