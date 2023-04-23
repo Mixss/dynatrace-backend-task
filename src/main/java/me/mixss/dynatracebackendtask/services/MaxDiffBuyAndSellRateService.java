@@ -2,7 +2,7 @@ package me.mixss.dynatracebackendtask.services;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import me.mixss.dynatracebackendtask.exceptions.ApiResponseBadFormatException;
-import me.mixss.dynatracebackendtask.exceptions.TooBigNumberOfQuotations;
+import me.mixss.dynatracebackendtask.exceptions.WrongNumberOfQuotations;
 import me.mixss.dynatracebackendtask.restclients.LastQuotationsBuyAndSellRatesClient;
 import org.springframework.stereotype.Service;
 
@@ -20,8 +20,8 @@ public class MaxDiffBuyAndSellRateService {
     }
 
     public Double getMaxDiffBuyAndSellRate(String currencyCode, int numberOfLastQuotations){
-        if(numberOfLastQuotations > maxNumberOfQuotations){
-            throw new TooBigNumberOfQuotations();
+        if(numberOfLastQuotations > maxNumberOfQuotations || numberOfLastQuotations < 1){
+            throw new WrongNumberOfQuotations();
         }
 
         JsonNode result = lastQuotationsBuyAndSellRatesClient.getLastQuotationsBuyAndSellRates(currencyCode, numberOfLastQuotations);
