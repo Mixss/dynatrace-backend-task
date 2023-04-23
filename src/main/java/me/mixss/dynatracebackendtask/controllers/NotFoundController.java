@@ -1,13 +1,14 @@
 package me.mixss.dynatracebackendtask.controllers;
 
+import io.swagger.v3.oas.annotations.Hidden;
 import me.mixss.dynatracebackendtask.exceptions.NotFoundException;
-import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.*;
 
-@Controller
+@RestController
+@Hidden
 public class NotFoundController {
 
-    @RequestMapping(value = "**")
+    @GetMapping("/api/**")
     public String notFound(){
         throw new NotFoundException();
     }
